@@ -1,5 +1,3 @@
-using Unity.VisualScripting;
-using UnityEditorInternal;
 using UnityEngine;
 public class Drift : MonoBehaviour
 {
@@ -11,8 +9,10 @@ public class Drift : MonoBehaviour
     [SerializeField] ParticleSystem smokeRight;
     [SerializeField] TrailRenderer leftTrail;
     [SerializeField] TrailRenderer rightTrail;
-    [SerializeField] float slowAccelerationRatio = 0.5f;
-    [SerializeField] float boostAccelerationRatid = 1.5f;
+    [SerializeField] float slowAccelerationRatio = 0.1f;
+    [SerializeField] float boostAccelerationRatid = 4f;
+    [SerializeField] ParticleSystem boostP;
+    [SerializeField] ParticleSystem slownessPar;
     float defaultAcceleration;
     float slowAcceleration;
     float boostAcceleration;
@@ -26,6 +26,8 @@ public class Drift : MonoBehaviour
         defaultAcceleration = accleration;
         slowAcceleration = accleration * slowAccelerationRatio;
         boostAcceleration = accleration * boostAccelerationRatid;
+        boostP.Stop();
+        slownessPar.Stop();
     }
     void FixedUpdate()
     {
@@ -36,7 +38,7 @@ public class Drift : MonoBehaviour
         }
         float turnAmount = Input.GetAxis("Horizontal") * steering * Mathf.Clamp(speed / maxSpeed, 0.4f, 1f);
         rb.MoveRotation(rb.rotation + -turnAmount);
-        
+
         Vector2 forwardVelocity = transform.up * Vector2.Dot(rb.linearVelocity, transform.up);
         Vector2 sideVelocity = transform.right * Vector2.Dot(rb.linearVelocity, transform.right);
         rb.linearVelocity = forwardVelocity + (sideVelocity * driftFactor);
@@ -51,7 +53,8 @@ public class Drift : MonoBehaviour
             if (!audioSource.isPlaying) audioSource.Play();
             if (!smokeLeft.isPlaying) smokeLeft.Play();
             if (!smokeRight.isPlaying) smokeRight.Play();
-        }else
+        }
+        else
         {
             if (audioSource.isPlaying) audioSource.Stop();
             if (smokeLeft.isPlaying) smokeLeft.Stop();
@@ -66,8 +69,15 @@ public class Drift : MonoBehaviour
         {
             accleration = boostAcceleration;
             Debug.Log("Booooooost");
-            Invoke(nameof(ResetAcceleration),5f);
+            Invoke(nameof(ResetAcceleration), 5f);
+            Destroy(other.gameObject);
+            boostP.Play();
+            Invoke(nameof(boostStop), 5f);
         }
+    }
+    void boostStop()
+    {
+        boostP.Stop();
     }
     void ResetAcceleration()
     {
@@ -76,6 +86,12 @@ public class Drift : MonoBehaviour
     private void OnCollisionEnter2D(Collision2D collision)
     {
         accleration = slowAcceleration;
-        Invoke(nameof(ResetAcceleration),3f);
+        Invoke(nameof(ResetAcceleration), 3f);
+        slownessPar.Play();
+        Invoke(nameof(slownessStop), 3f);
+    }
+    void slownessStop()
+    {
+        slownessPar.Stop();
     }
 }
