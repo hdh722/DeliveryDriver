@@ -7,6 +7,8 @@ TagManager:
   - Customer
   - Chicken
   - Boost
+  - Blocked
+  - ChickenBanana
   layers:
   - Default
   - TransparentFX

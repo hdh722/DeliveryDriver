@@ -18,6 +18,8 @@ public class Drift : MonoBehaviour
     float boostAcceleration;
     Rigidbody2D rb;
     AudioSource audioSource;
+    public AudioSource crashsound;
+    public AudioSource boostsound;
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -28,6 +30,8 @@ public class Drift : MonoBehaviour
         boostAcceleration = accleration * boostAccelerationRatid;
         boostP.Stop();
         slownessPar.Stop();
+        boostsound.Stop();
+        crashsound.Stop();
     }
     void FixedUpdate()
     {
@@ -38,6 +42,7 @@ public class Drift : MonoBehaviour
         }
         float turnAmount = Input.GetAxis("Horizontal") * steering * Mathf.Clamp(speed / maxSpeed, 0.4f, 1f);
         rb.MoveRotation(rb.rotation + -turnAmount);
+
 
         Vector2 forwardVelocity = transform.up * Vector2.Dot(rb.linearVelocity, transform.up);
         Vector2 sideVelocity = transform.right * Vector2.Dot(rb.linearVelocity, transform.right);
@@ -73,7 +78,14 @@ public class Drift : MonoBehaviour
             Destroy(other.gameObject);
             boostP.Play();
             Invoke(nameof(boostStop), 5f);
+            boostsound.Play();
+            Invoke(nameof(boostsoundd), 2.5f);
+            slownessPar.Stop();
         }
+    }
+    void boostsoundd()
+    {
+        boostsound.Stop();
     }
     void boostStop()
     {
@@ -83,15 +95,23 @@ public class Drift : MonoBehaviour
     {
         accleration = defaultAcceleration;
     }
+    void destroysoun()
+    {
+        crashsound.Stop();
+    }
+    void slownessStop()
+    {
+        slownessPar.Stop();
+    }
     private void OnCollisionEnter2D(Collision2D collision)
     {
         accleration = slowAcceleration;
         Invoke(nameof(ResetAcceleration), 3f);
         slownessPar.Play();
         Invoke(nameof(slownessStop), 3f);
-    }
-    void slownessStop()
-    {
-        slownessPar.Stop();
+        crashsound.Play();
+        Invoke(nameof(destroysoun), 1f);
+        boostP.Stop();
+        boostsound.Stop();
     }
 }
